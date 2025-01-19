@@ -1,0 +1,35 @@
+apiVersion: k3d.io/v1alpha5 # this will change in the future as we make everything more stable
+kind: Simple # internally, we also have a Cluster config, which is not yet available externally
+metadata:
+  name: deviceorbit # name that you want to give to your cluster (will still be prefixed with `k3d-`)
+kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would resolve to 127.0.0.1)
+  host: "deviceorbit" # important for the `server` setting in the kubeconfig
+  hostIP: "0.0.0.0" # where the Kubernetes API will be listening on
+  hostPort: "6445" # where the Kubernetes API listening port will be mapped to on your host system
+registries: # define how registries should be created or used
+  create: # creates a default registry to be used with the cluster; same as `--registry-create registry.localhost`
+    name: deviceorbit
+    host: "0.0.0.0"
+    hostPort: "5050"
+  config: |
+    auths: null
+    mirrors:
+      deviceorbit.local:5050:
+        endpoint:
+        - http://deviceorbit:5000
+options:
+  k3s: # options passed on to K3s itself
+    extraArgs: # additional arguments passed to the `k3s server|agent` command; same as `--k3s-arg`
+      - arg: --kubelet-arg=--allowed-unsafe-sysctls=net.ipv6.conf.all.disable_ipv6
+        nodeFilters: ['server:0']
+      - arg: --kubelet-arg=--allowed-unsafe-sysctls=net.ipv4.ip_forward
+        nodeFilters: ['server:0']
+volumes: # repeatable flags are represented as YAML lists
+  - volume: /dev:/dev # same as `--volume '/my/host/path:/path/in/node@server:0;agent:*'`
+    nodeFilters: ['server:0']
+ports:
+  - port: 8080-8090:8080-8090
+    nodeFilters: ['server:0']
+  - port: 30050-30100:30050-30100
+    nodeFilters: ['server:0']
+  

@@ -1,0 +1,15 @@
+image:
+  repository: github.com/kvs-coder/DeviceOrbit/controller
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  httpPort: 8080
+  grpcPort: 50051
+
+container:
+  name: "busybox"
+  tag: "latest"
+  command: ["sleep", "infinity"]
+  args: []

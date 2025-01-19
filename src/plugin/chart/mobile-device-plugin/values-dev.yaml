@@ -1,0 +1,7 @@
+image:
+  repository: github.com/kvs-coder/DeviceOrbit/plugin
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+devices:
+  requested: 1

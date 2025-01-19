@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: default
+  name: {{ include "mobile-device-plugin.fullname" . }}
+  labels:
+    {{- include "mobile-device-plugin.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "mobile-device-plugin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mobile-device-plugin.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: DEVICES_REQUESTED
+            value: "{{ .Values.devices.requested }}"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: mobile-device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: dev-dir
+              mountPath: /dev
+            - name: sys-dir
+              mountPath: /sys
+      volumes:
+        - name: mobile-device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: dev-dir
+          hostPath:
+            path: /dev
+        - name: sys-dir
+          hostPath:
+            path: /sys             

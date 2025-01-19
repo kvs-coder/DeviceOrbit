@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  namespace: default
+  name: {{ include "mobile-device-controller.fullname" . }}
+  labels:
+    {{- include "mobile-device-controller.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mobile-device-controller.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mobile-device-controller.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: mobile-device-controller
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: API_PORT
+            value: "{{ .Values.service.httpPort }}"
+          - name: RPC_PORT
+            value: "{{ .Values.service.grpcPort }}"
+
+          - name: CONTAINER_NAME
+            value: "{{ .Values.container.name }}"
+          - name: CONTAINER_TAG
+            value: "{{ .Values.container.tag }}"
+          - name: CONTAINER_COMMAND
+            value: "{{ .Values.container.command | join "," }}"
+          - name: CONTAINER_ARGS
+            value: "{{ .Values.container.args | join "," }}"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.httpPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.httpPort }}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+ 

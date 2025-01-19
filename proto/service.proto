@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package com.kvs.mobile_device_controller;
+
+option go_package = "./src/proto";
+
+enum Platform {
+    UNKNOWN = 0;
+    IOS = 1;
+    ANDROID = 2;
+}
+
+message Device {
+    string serial = 1;
+    Platform platform = 2;
+}
+
+message DeviceRequest {
+    Device device = 1;
+}
+
+message DeviceResponse {
+    bool isRunning = 1;
+}
+
+service MobileDeviceService {
+    rpc CreateDevice (DeviceRequest) returns (DeviceResponse);
+    rpc DeleteDevice (DeviceRequest) returns (DeviceResponse);
+}

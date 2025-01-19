@@ -1,0 +1,47 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: mobile-device-plugin
+build:
+  local:
+    push: false
+    useBuildkit: true
+  tagPolicy:
+    customTemplate:
+      template: "{{.date}}-{{.branch}}-g{{.sha}}"
+      components:
+        - name: date
+          dateTime:
+            format: "2006.01.02"
+            timezone: "UTC"
+        - name: branch
+          gitCommit:
+            variant: CommitSha
+            ignoreChanges: true
+        - name: sha
+          gitCommit:
+            variant: AbbrevCommitSha
+  artifacts:
+    - image: "com.kvs.mobile-device-plugin"
+      docker:
+        buildArgs:
+          IMAGE_TAG: "{{.IMAGE_TAG}}"
+      hooks:
+        before:
+          - command:
+              - sh
+              - -c
+              - echo "CONTAINER_TAG=$SKAFFOLD_IMAGE_TAG">build.env
+
+profiles:
+  - name: deviceorbit 
+    deploy:
+      helm:
+        releases:
+          - name: mobile-device-plugin
+            chartPath: chart/mobile-device-plugin
+            valuesFiles:
+              - "chart/mobile-device-plugin/values-dev.yaml"
+            setValueTemplates:
+              image.repository: "{{.IMAGE_REPO}}"
+              image.tag: "{{.IMAGE_TAG}}"
